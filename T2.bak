@@ -4,7 +4,7 @@
 ;; PARTE 1A, 1B, 1F
 
 #|
-  Expr ::= 
+  Expr ::= ...
 |#
 (deftype Expr
   ;; core
@@ -12,35 +12,10 @@
   (add l r)
   (sub l r)
   (mul l r)
-  (tt)
-  (ff)
-  (leq l r)
-  (ifc c t e)
-  (id x)
   )
 
 ;; parse :: ...
-(define (parse s-expr)
-  (match s-expr
-    [n #:when (number? n) (num n)]
-    [(list '+ l r) (add (parse l) (parse r))]
-    [(list '- l r) (sub (parse l) (parse r))]
-    [(list '* l r) (mul (parse l) (parse r))]
-    ['true (tt)]
-    ['false (ff)]
-    [(list '<= l r) (leq (parse l) (parse r))]
-    [(list 'if c t e) (ifc (parse c) (parse t) (parse e))]
-    [x #:when (and (symbol? x) (not (eq? x 'true)) (not (eq? x 'false))) (id x)]
-    ))
-
-(test (parse '(+ 1 2)) (add (num 1) (num 2)))
-(test (parse '(- 1 2)) (sub (num 1) (num 2)))
-(test (parse '(* 1 2)) (mul (num 1) (num 2)))
-(test (parse 'true) (tt))
-(test (parse 'false) (ff))
-(test (parse '(<= 3 4)) (leq (num 3) (num 4)))
-(test (parse '(if (<= 3 4) 3 4)) (ifc (leq (num 3) (num 4)) (num 3) (num 4)))
-(test (parse 'x) (id 'x))
+(define (parse) '???)
 
 ;; PARTE 1C, 1G
 
