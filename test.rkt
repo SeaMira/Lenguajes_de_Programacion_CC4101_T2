@@ -1,12 +1,49 @@
 #lang play
 (require "T2.rkt")
 
+;; Testing Parse
+; Test sum
 (test (parse '(+ 1 2)) (add (num 1) (num 2)))
+(test (parse '(+ 1 (+ x 2))) (add (num 1) (add (id 'x) (num 2))))
+(test (parse '(+ (- 2 4) (* 5 6))) (add (sub (num 2) (num 4)) (mul (num 5) (num 6))))
+
+; Test sub
 (test (parse '(- 1 2)) (sub (num 1) (num 2)))
+(test (parse '(- (fun (x y) (+ x y)) 2)) (sub (fun (list 'x 'y) (add (id 'x) (id 'y))) (num 2)))
+
+; Test mul
 (test (parse '(* 1 2)) (mul (num 1) (num 2)))
+(test (parse '(* (if (<= 3 4) 5 8) 9)) (mul (ifc (leq (num 3) (num 4)) (num 5) (num 8)) (num 9)))
+
+; Test true
 (test (parse 'true) (tt))
+(test (parse '(if (<= 3 4) true true)) (ifc (leq (num 3) (num 4)) (tt) (tt)))
+
+; Test false
 (test (parse 'false) (ff))
+(test (parse '(if (<= 3 4) false false)) (ifc (leq (num 3) (num 4)) (ff) (ff)))
+
+; Test less or equal
 (test (parse '(<= 3 4)) (leq (num 3) (num 4)))
+(test (parse '(fun (x y z) (if (<= x y) (+ x y) (+ x z)))) (fun '(x y z) (ifc (leq (id 'x) (id 'y)) (add (id 'x) (id 'y)) (add (id 'x) (id 'z)))))
+
+; Test ifc
 (test (parse '(if (<= 3 4) 3 4)) (ifc (leq (num 3) (num 4)) (num 3) (num 4)))
+
+; Test parse id
+(test (parse 'x) (id 'x))
+
+; Test parse fun
+(test (parse ' (fun (x y) (+ x y))) (fun '(x y) (add (id 'x) (id 'y))))
+
+; Test app fun
+(test (parse '(my-function 2 3 4)) (app (id 'my-function) (list (num 2) (num 3) (num 4))))
+(test (parse '(alo)) (app (id 'alo) (list)))
+
+; Testing parse tuple
+(test (parse ' (tuple 1 2 3)) (tupl ( list (num 1) (num 2) (num 3))))
+;Testing parse projection
+(test (parse '(proj (tuple 10 20 30) 1)) (proj (tupl (list (num 10) (num 20) (num 30))) (num 1)))
+
 
 (print-only-errors #t)

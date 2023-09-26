@@ -13,13 +13,12 @@
          | (leq <expr> <expr>)
          | (ifc <expr> <expr> <expr>)
          | (id <sym>)
-         | (fun (list <id>) <expr>)
-         | (app <sym> (list <expr>))
-         | (tuple (list <expr>))
+         | (fun (list <id>*) <expr>)
+         | (app <sym> (list <expr>*))
+         | (tuple (list <expr>*))
          | (proj <tuple> <num>)
 |#
 (deftype Expr
-  ;; core
   (num n)
   (add l r)
   (sub l r)
@@ -34,6 +33,24 @@
   (tupl expr)
   (proj exprs expr)
   )
+
+;; s-expressions used as concrete syntax for our programs
+#|
+<s-expr> ::= <num>
+           | <sym>
+           | (list '+  <s-expr> <s-expr>)
+           | (list '-  <s-expr> <s-expr>)
+           | (list '*  <s-expr> <s-expr>)
+           | ('true)
+           | ('false)
+           | (list '<=  <s-expr>  <s-expr>)
+           | (list 'ifc  <s-expr> <s-expr> <s-expr>)
+           | (<sym>)
+           | (list 'fun (list <sym>*) <s-expr>)
+           | (list <s-expr> <s-expr>*)
+           | (list 'tuple <s-expr>*)
+           | (list 'proj <s-expr> <s-expr>)
+|#
 
 ;; parse :: s-expr -> Expr
 ;; converts s-exprs into Exprs
@@ -54,21 +71,13 @@
     [(list 'proj tupl expr) (proj (parse tupl) (parse expr))]
     ))
 
-(test (parse '(+ 1 2)) (add (num 1) (num 2)))
-(test (parse '(- 1 2)) (sub (num 1) (num 2)))
-(test (parse '(* 1 2)) (mul (num 1) (num 2)))
-(test (parse 'true) (tt))
-(test (parse 'false) (ff))
-(test (parse '(<= 3 4)) (leq (num 3) (num 4)))
-(test (parse '(if (<= 3 4) 3 4)) (ifc (leq (num 3) (num 4)) (num 3) (num 4)))
-(test (parse 'x) (id 'x))
-(test (parse ' (fun (x y) (+ x y))) (fun '(x y) (add (id 'x) (id 'y))))
-(test (parse '(my-function 2 3 4)) (app (id 'my-function) (list (num 2) (num 3) (num 4))))
+
 ;; PARTE 1C, 1G
 
 ;; values of expressions
 ;; <Val> ::= (numV <number>)
 ;;         | (boolV <boolean>)
+;;         | (tupleV (list <Val>))
 ;;         | (closureV <id> <expr> <env>) 
 
 (deftype Val
@@ -129,9 +138,13 @@
 
 ;; PARTE 1E, 1G
 
+;; num-leq? :: (boolV -> boolean)
+;; Recieves a boolV and returns its boolean value.
 (define (num-leq? n)
   (def (boolV b) n) b)
 
+;; extend-env-lst :: listof(id) listof(expr) env env -> env
+;; Extends an env with a list of id's with their own values (Expr) on another list.
 (define (extend-env-lst args arg-values env ext-env)
   (if (not (eq? (length args) (length arg-values))) (error "not the amount of parameters needed") (void))
   (match args
@@ -141,6 +154,8 @@
      (extend-env-lst rest-args rest-arg-values env (extend-env arg (eval val env) ext-env))]
   ))
 
+;; eval-tuple :: list(expr) env -> list(Val)
+;; Turns a tuple values into Val's according to a env.
 (define (eval-tuple lst env)
   (match lst
     [(list) '()]
@@ -148,20 +163,25 @@
     )
   )
 
+;; tupl-ref :: tupleV numV -> Val
+;; Recieves a tupleV and a numV and takes the projection that the value of the numV indicates as a position
+;; on the values of the tupleV.
 (define (tupl-ref tuplV nV)
   (def (tupleV lst) tuplV)
   (def (numV i) nV)
   (list-ref lst i)
   )
 
-;; eval :: ...
+;; eval :: Expr Env -> Value
+;; evaluates an expression in a given
+;; environment using static scoping
 (define (eval expr env)
   (match expr
     [(num n) (numV n)]
     [(tt) (boolV #t)]
     [(ff) (boolV #f)]
     [(fun ids body) (closureV ids body env)]
-    [(id x) (env-lookup x env)]
+    [(id x) (env-lookup (id x) env)]
     [(add l r) (num+ (eval l env) (eval r env))]
     [(sub l r) (num- (eval l env) (eval r env))]
     [(mul l r) (num* (eval l env) (eval r env))]
