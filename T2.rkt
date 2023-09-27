@@ -78,7 +78,7 @@
 ;; <Val> ::= (numV <number>)
 ;;         | (boolV <boolean>)
 ;;         | (tupleV (list <Val>))
-;;         | (closureV <id> <expr> <env>) 
+;;         | (closureV <sym> <expr> <env>) 
 
 (deftype Val
   (numV n)
@@ -181,7 +181,7 @@
     [(tt) (boolV #t)]
     [(ff) (boolV #f)]
     [(fun ids body) (closureV ids body env)]
-    [(id x) (env-lookup (id x) env)]
+    [(id x) (env-lookup x env)]
     [(add l r) (num+ (eval l env) (eval r env))]
     [(sub l r) (num- (eval l env) (eval r env))]
     [(mul l r) (num* (eval l env) (eval r env))]
@@ -198,12 +198,39 @@
 
 ;; PARTE 2A
 
-(define swap* '???)
-(define curry* '???)
-(define uncurry* '???)
-(define partial* '???)
+;; swap* :: (expr expr -> expr) -> (expr expr -> expr)
+;; recieves a function that takes parameters "a" and "b" to return a "c" value,
+;; returns a function that evaluates the parameter function with parameters "b" and "a" to return a "c" value
+(define swap* (closureV (list 'f)  (fun (list 'x 'y) (app (id 'f) (list (parse 'y) (parse 'x)))) (mtEnv)))
+
+;; curry* :: (expr expr -> expr) -> (expr -> (expr -> expr))
+;; recieves a function that takes parameters "a" and "b" to return a "c" value,
+;; and curryfies it into a function that takes an "a" value to generate a function that
+;; recieves a "b" value to return a "c" value.
+(define curry* (closureV (list 'f) (fun (list 'x) (fun (list 'y) (app (id 'f) (list (parse 'x) (parse 'y))))) (mtEnv)))
+
+
+(define uncurry* (closureV (list 'f) (fun (list 'x 'y) (app (app (id 'f) (list (parse 'x))) (list (parse 'y)))) (mtEnv)))
+
+;; partial* :: (fun expr -> expr)  
+(define partial* (closureV (list 'f 'a) (fun (list 'b) (app (id 'f) (list (parse 'a) (parse 'b)))) (mtEnv)))
 
 ;; PARTE 2B
 
+(define (add-f global env)
+  (match global
+    [(list) env]
+    [(cons f rest) (def (cons s v) f) (add-f rest (extend-env s v env))]
+    )
+  )
+
 ;; run :: ...
-(define (run) '???)
+(define (run s-expr gl)
+  (def new-env (add-f gl (mtEnv)))
+  (eval (parse s-expr) new-env))
+
+(define globals ( list
+(cons 'swap swap*)
+(cons 'curry curry*)
+;(cons 'uncurry uncurry*)
+(cons ' partial partial* )))

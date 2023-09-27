@@ -46,4 +46,23 @@
 (test (parse '(proj (tuple 10 20 30) 1)) (proj (tupl (list (num 10) (num 20) (num 30))) (num 1)))
 
 
+
+(test (eval (parse '(fun (x) x)) (mtEnv)) (closureV (list 'x) (parse 'x) (mtEnv)))
+(test (eval (parse '(f 2 2 2)) (aEnv 'f (closureV (list 'x 'y 'z) (parse '(+ x (+ y z))) (mtEnv)) (mtEnv))) (numV 6))
+(test (eval (parse '(f 2 2 2)) (aEnv 'f (closureV (list 'x 'y 'z) (parse '(+ x (+ y (+ z w)))) (aEnv 'w (numV 6) mtEnv)) (mtEnv))) (numV 12))
+
+
+;; Part 2
+
+; Test swap*
+;(test (swap* (fun (list 'x 'y) (parse '(- x y)))) (closureV (list 'y 'x) (parse '(- x y)) (mtEnv)))
+;(test (swap* (fun (list 'x 'y) (parse '(+ x y)))) (fun (list 'y 'x) (parse '(+ x y))))
+
+(define globals ( list
+(cons 'swap swap*)
+(cons 'curry curry*)
+;(cons 'uncurry uncurry*)
+(cons ' partial partial* )))
+
+
 (print-only-errors #t)
