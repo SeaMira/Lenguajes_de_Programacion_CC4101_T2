@@ -107,6 +107,7 @@
     [(mtEnv) (error 'env-lookup "free identifier: ~a" x)]
     [(aEnv id val rest) (if (symbol=? id x) val (env-lookup x rest))]))
 
+
 ;; PARTE 1D
 
 ;; num2num-op :: (Number Number -> Number)-> (Val Val -> Val)
@@ -119,6 +120,7 @@
         (def (numV a) x) (def (numV b) y)
         (numV (op a b))
          ))
+
 
 ;; num2bool-op :: (Number Number -> Boolean)-> (Val Val -> Val)
 ;; Recieves a binary operation between two numbers returning a boolean, and returns a binary operation between
@@ -135,6 +137,7 @@
 (define num- (num2num-op -))
 (define num* (num2num-op *))
 (define num<= (num2bool-op <=))
+
 
 ;; PARTE 1E, 1G
 
@@ -198,6 +201,8 @@
 
 ;; PARTE 2A
 
+
+
 ;; swap* :: (expr expr -> expr) -> (expr expr -> expr)
 ;; recieves a function that takes parameters "a" and "b" to return a "c" value,
 ;; returns a function that evaluates the parameter function with parameters "b" and "a" to return a "c" value
@@ -209,7 +214,7 @@
 ;; recieves a "b" value to return a "c" value.
 (define curry* (closureV (list 'f) (fun (list 'x) (fun (list 'y) (app (id 'f) (list (parse 'x) (parse 'y))))) (mtEnv)))
 
-
+;; uncurry* :: (Val Val -> Val) -> 
 (define uncurry* (closureV (list 'f) (fun (list 'x 'y) (app (app (id 'f) (list (parse 'x))) (list (parse 'y)))) (mtEnv)))
 
 ;; partial* :: (fun expr -> expr)  
@@ -224,13 +229,10 @@
     )
   )
 
-;; run :: ...
+;; run :: s-expr listof(pairs (id Val))-> Val
+;; evaluates an expression with functions defined in a list of pairs of "id of function" and function. 
 (define (run s-expr gl)
   (def new-env (add-f gl (mtEnv)))
   (eval (parse s-expr) new-env))
 
-(define globals ( list
-(cons 'swap swap*)
-(cons 'curry curry*)
-;(cons 'uncurry uncurry*)
-(cons ' partial partial* )))
+
